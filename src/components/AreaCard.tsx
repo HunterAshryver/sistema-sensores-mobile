@@ -11,13 +11,13 @@ export const AreaCard: React.FC<Props> = ({ area, onPress }) => {
   const getStatusColor = (status: StatusVegetacao): string => {
     switch (status) {
       case StatusVegetacao.NORMAL:
-        return '#4CAF50'; // Verde
+        return '#4ADE80';
       case StatusVegetacao.ATENCAO:
-        return '#FF9800'; // Laranja
+        return '#F97316';
       case StatusVegetacao.URGENTE:
-        return '#F44336'; // Vermelho
+        return '#EF4444';
       default:
-        return '#9E9E9E'; // Cinza
+        return '#6B7C6B';
     }
   };
 
@@ -46,15 +46,17 @@ export const AreaCard: React.FC<Props> = ({ area, onPress }) => {
     });
   };
 
+  const statusColor = getStatusColor(area.status);
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <TouchableOpacity style={[styles.card, { borderLeftColor: statusColor }]} onPress={onPress}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.codigo}>{area.codigo}</Text>
           <Text style={styles.rodovia}>{area.rodovia}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(area.status) }]}>
-          <Text style={styles.statusText}>{getStatusLabel(area.status)}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: statusColor + '22', borderColor: statusColor }]}>
+          <Text style={[styles.statusText, { color: statusColor }]}>{getStatusLabel(area.status)}</Text>
         </View>
       </View>
 
@@ -78,19 +80,19 @@ export const AreaCard: React.FC<Props> = ({ area, onPress }) => {
       <View style={styles.metrics}>
         <View style={styles.metricBox}>
           <Text style={styles.metricLabel}>Altura Média</Text>
-          <Text style={styles.metricValue}>
+          <Text style={[styles.metricValue, { color: statusColor }]}>
             {area.alturaMedia ? `${area.alturaMedia.toFixed(2)}m` : '-'}
           </Text>
         </View>
         <View style={styles.metricBox}>
           <Text style={styles.metricLabel}>Densidade</Text>
-          <Text style={styles.metricValue}>
+          <Text style={[styles.metricValue, { color: statusColor }]}>
             {area.densidade ? `${area.densidade.toFixed(1)}%` : '-'}
           </Text>
         </View>
         <View style={styles.metricBox}>
           <Text style={styles.metricLabel}>Medições</Text>
-          <Text style={styles.metricValue}>{area.totalMedicoes}</Text>
+          <Text style={[styles.metricValue, { color: statusColor }]}>{area.totalMedicoes}</Text>
         </View>
       </View>
 
@@ -105,16 +107,16 @@ export const AreaCard: React.FC<Props> = ({ area, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#444744',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
+    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: '#1A2A1A',
+    // Fix para web — substitui shadow* que não funciona no navegador
+    boxShadow: '0px 4px 12px rgba(255, 250, 250, 0.4)',
+  } as any,
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -127,26 +129,26 @@ const styles = StyleSheet.create({
   codigo: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#E2F5E2',
     marginBottom: 4,
   },
   rodovia: {
     fontSize: 14,
-    color: '#666',
+    color: '#f7f7f7',
   },
   statusBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    borderWidth: 1,
   },
   statusText: {
-    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
   },
   info: {
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: '#ffffff',
     paddingTop: 12,
     marginBottom: 12,
   },
@@ -157,11 +159,11 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#666',
+    color: '#ffffff',
   },
   value: {
     fontSize: 14,
-    color: '#333',
+    color: '#9CA39C',
     fontWeight: '500',
   },
   metrics: {
@@ -170,7 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: '#ffffff',
   },
   metricBox: {
     flex: 1,
@@ -178,22 +180,23 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     fontSize: 11,
-    color: '#999',
+    color: '#ffffff',
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   metricValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: 's#1A2A1A',
     paddingTop: 8,
   },
   footerText: {
     fontSize: 12,
-    color: '#999',
+    color: '#ffffff',
     textAlign: 'center',
   },
 });

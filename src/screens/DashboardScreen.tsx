@@ -80,14 +80,13 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const handleAreaPress = (area: AreaMonitoramento) => {
-    // TODO: Navegar para tela de detalhes (próxima aula)
     Alert.alert('Detalhes', `Área: ${area.codigo}\n\nFuncionalidade será implementada na próxima aula`);
   };
 
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6200EE" />
+        <ActivityIndicator size="large" color="#4ADE80" />
         <Text style={styles.loadingText}>Carregando dados...</Text>
       </View>
     );
@@ -99,7 +98,7 @@ export const DashboardScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>VerdeSmart</Text>
+        <Text style={styles.title}> LeafGreen</Text>
         <Text style={styles.subtitle}>Monitoramento de Vegetação</Text>
       </View>
 
@@ -108,36 +107,36 @@ export const DashboardScreen: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.statusCard,
-            { backgroundColor: '#F44336' },
+            { backgroundColor: '#3B0D0D', borderColor: '#EF4444' },
             filtroStatus === StatusVegetacao.URGENTE && styles.statusCardActive,
           ]}
           onPress={() => setFiltroStatus(StatusVegetacao.URGENTE)}
         >
-          <Text style={styles.statusNumber}>{contarPorStatus(StatusVegetacao.URGENTE)}</Text>
+          <Text style={[styles.statusNumber, { color: '#EF4444' }]}>{contarPorStatus(StatusVegetacao.URGENTE)}</Text>
           <Text style={styles.statusLabel}>Urgente</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.statusCard,
-            { backgroundColor: '#FF9800' },
+            { backgroundColor: '#2D1A00', borderColor: '#F97316' },
             filtroStatus === StatusVegetacao.ATENCAO && styles.statusCardActive,
           ]}
           onPress={() => setFiltroStatus(StatusVegetacao.ATENCAO)}
         >
-          <Text style={styles.statusNumber}>{contarPorStatus(StatusVegetacao.ATENCAO)}</Text>
+          <Text style={[styles.statusNumber, { color: '#F97316' }]}>{contarPorStatus(StatusVegetacao.ATENCAO)}</Text>
           <Text style={styles.statusLabel}>Atenção</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.statusCard,
-            { backgroundColor: '#4CAF50' },
+            { backgroundColor: '#0D2B12', borderColor: '#4ADE80' },
             filtroStatus === StatusVegetacao.NORMAL && styles.statusCardActive,
           ]}
           onPress={() => setFiltroStatus(StatusVegetacao.NORMAL)}
         >
-          <Text style={styles.statusNumber}>{contarPorStatus(StatusVegetacao.NORMAL)}</Text>
+          <Text style={[styles.statusNumber, { color: '#4ADE80' }]}>{contarPorStatus(StatusVegetacao.NORMAL)}</Text>
           <Text style={styles.statusLabel}>Normal</Text>
         </TouchableOpacity>
       </View>
@@ -148,7 +147,7 @@ export const DashboardScreen: React.FC = () => {
           style={styles.clearFilterButton}
           onPress={() => setFiltroStatus('TODOS')}
         >
-          <Text style={styles.clearFilterText}>Limpar Filtro</Text>
+          <Text style={styles.clearFilterText}>✕ Limpar Filtro</Text>
         </TouchableOpacity>
       )}
 
@@ -160,9 +159,17 @@ export const DashboardScreen: React.FC = () => {
           <AreaCard area={item} onPress={() => handleAreaPress(item)} />
         )}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#4ADE80"
+            colors={['#4ADE80']}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>🌱</Text>
             <Text style={styles.emptyText}>Nenhuma área encontrada</Text>
           </View>
         }
@@ -179,79 +186,89 @@ export const DashboardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#0A0F0A',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#0A0F0A',
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: '#4ADE80',
+    letterSpacing: 0.5,
   },
   header: {
-    backgroundColor: '#6200EE',
+    backgroundColor: '#0D1F0F',
     padding: 20,
     paddingTop: 50,
-    paddingBottom: 30,
+    paddingBottom: 28,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A3A1C',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#4ADE80',
     marginBottom: 4,
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#E0E0E0',
+    fontSize: 14,
+    color: '#6B7C6B',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   statusContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0D130D',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#1A2A1A',
   },
   statusCard: {
     flex: 1,
-    marginHorizontal: 6,
-    padding: 16,
-    borderRadius: 12,
+    marginHorizontal: 5,
+    padding: 14,
+    borderRadius: 10,
     alignItems: 'center',
-    opacity: 0.9,
+    borderWidth: 1,
+    opacity: 0.85,
   },
   statusCardActive: {
     opacity: 1,
-    borderWidth: 3,
-    borderColor: '#333',
+    borderWidth: 2,
   },
   statusNumber: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     marginBottom: 4,
   },
   statusLabel: {
-    fontSize: 12,
-    color: '#FFFFFF',
+    fontSize: 11,
+    color: '#9CA39C',
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   clearFilterButton: {
-    backgroundColor: '#6200EE',
-    padding: 12,
+    backgroundColor: '#132B15',
+    borderWidth: 1,
+    borderColor: '#4ADE80',
+    padding: 10,
     margin: 16,
     marginBottom: 0,
     borderRadius: 8,
     alignItems: 'center',
   },
   clearFilterText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    color: '#4ADE80',
+    fontSize: 13,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   list: {
     padding: 16,
@@ -260,27 +277,34 @@ const styles = StyleSheet.create({
     padding: 40,
     alignItems: 'center',
   },
+  emptyIcon: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    color: '#4A5A4A',
   },
   fab: {
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#6200EE',
+    backgroundColor: '#166534',
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 28,
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: '#4ADE80',
+    shadowColor: '#4ADE80',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 8,
   },
   fabText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: '#4ADE80',
+    fontSize: 15,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
 });
