@@ -7,17 +7,40 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
-  Alert,
+  Modal,
 } from 'react-native';
 import { AreaCard } from '../components/AreaCard';
 import { AreaMonitoramento, StatusVegetacao } from '../types/areaMonitoramento';
 import { api } from '../services/api';
+
+type ModalConfig = {
+  visible: boolean;
+  title: string;
+  message: string;
+  onConfirm?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  showCancel?: boolean;
+};
 
 export const DashboardScreen: React.FC = () => {
   const [areas, setAreas] = useState<AreaMonitoramento[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState<StatusVegetacao | 'TODOS'>('TODOS');
+  const [modal, setModal] = useState<ModalConfig>({
+    visible: false,
+    title: '',
+    message: '',
+  });
+
+  const showModal = (config: Omit<ModalConfig, 'visible'>) => {
+    setModal({ ...config, visible: true });
+  };
+
+  const hideModal = () => {
+    setModal((prev) => ({ ...prev, visible: false }));
+  };
 
   useEffect(() => {
     carregarAreas();
@@ -30,7 +53,12 @@ export const DashboardScreen: React.FC = () => {
       setAreas(dados);
     } catch (error) {
       console.error('Erro ao carregar áreas:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as áreas de monitoramento');
+      showModal({
+        title: 'Erro',
+        message: 'Não foi possível carregar as áreas de monitoramento.',
+        confirmText: 'OK',
+        showCancel: false,
+      });
     } finally {
       setLoading(false);
     }
@@ -42,36 +70,42 @@ export const DashboardScreen: React.FC = () => {
     setRefreshing(false);
   };
 
-  const simularColeta = async () => {
-    try {
-      Alert.alert(
-        'Simular Coleta',
-        'Deseja simular a coleta de dados de todas as áreas?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          {
-            text: 'Confirmar',
-            onPress: async () => {
-              setLoading(true);
-              await api.medicoes.simularTodasAreas();
-              await carregarAreas();
-              Alert.alert('Sucesso', 'Coleta de dados simulada com sucesso!');
-              setLoading(false);
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Erro ao simular coleta:', error);
-      Alert.alert('Erro', 'Não foi possível simular a coleta de dados');
-      setLoading(false);
-    }
+  const simularColeta = () => {
+    showModal({
+      title: '🔬 Simular Coleta',
+      message: 'Deseja simular a coleta de dados de todas as áreas?',
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      showCancel: true,
+      onConfirm: async () => {
+        hideModal();
+        try {
+          setLoading(true);
+          await api.medicoes.simularTodasAreas();
+          await carregarAreas();
+          showModal({
+            title: '✅ Sucesso',
+            message: 'Coleta de dados simulada com sucesso!',
+            confirmText: 'OK',
+            showCancel: false,
+          });
+        } catch (error) {
+          console.error('Erro ao simular coleta:', error);
+          showModal({
+            title: 'Erro',
+            message: 'Não foi possível simular a coleta de dados.',
+            confirmText: 'OK',
+            showCancel: false,
+          });
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const filtrarAreas = (): AreaMonitoramento[] => {
-    if (filtroStatus === 'TODOS') {
-      return areas;
-    }
+    if (filtroStatus === 'TODOS') return areas;
     return areas.filter((area) => area.status === filtroStatus);
   };
 
@@ -80,7 +114,12 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const handleAreaPress = (area: AreaMonitoramento) => {
-    Alert.alert('Detalhes', `Área: ${area.codigo}\n\nFuncionalidade será implementada na próxima aula`);
+    showModal({
+      title: `📍 ${area.codigo}`,
+      message: 'Funcionalidade de detalhes será implementada na próxima aula.',
+      confirmText: 'OK',
+      showCancel: false,
+    });
   };
 
   if (loading && !refreshing) {
@@ -96,20 +135,46 @@ export const DashboardScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+
+      {/* Modal customizado */}
+      <Modal visible={modal.visible} transparent animationType="fade" onRequestClose={hideModal}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>{modal.title}</Text>
+            <Text style={styles.modalMessage}>{modal.message}</Text>
+            <View style={styles.modalButtons}>
+              {modal.showCancel && (
+                <TouchableOpacity style={styles.modalButtonCancel} onPress={hideModal}>
+                  <Text style={styles.modalButtonCancelText}>{modal.cancelText ?? 'Cancelar'}</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                style={styles.modalButtonConfirm}
+                onPress={() => {
+                  if (modal.onConfirm) {
+                    modal.onConfirm();
+                  } else {
+                    hideModal();
+                  }
+                }}
+              >
+                <Text style={styles.modalButtonConfirmText}>{modal.confirmText ?? 'OK'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}> LeafGreen</Text>
+        <Text style={styles.title}>🌿 LeafGreen</Text>
         <Text style={styles.subtitle}>Monitoramento de Vegetação</Text>
       </View>
 
-      {/* Cards de Status (funcionam como filtro) */}
+      {/* Cards de Status */}
       <View style={styles.statusContainer}>
         <TouchableOpacity
-          style={[
-            styles.statusCard,
-            { backgroundColor: '#3B0D0D', borderColor: '#EF4444' },
-            filtroStatus === StatusVegetacao.URGENTE && styles.statusCardActive,
-          ]}
+          style={[styles.statusCard, { backgroundColor: '#3B0D0D', borderColor: '#EF4444' }, filtroStatus === StatusVegetacao.URGENTE && styles.statusCardActive]}
           onPress={() => setFiltroStatus(StatusVegetacao.URGENTE)}
         >
           <Text style={[styles.statusNumber, { color: '#EF4444' }]}>{contarPorStatus(StatusVegetacao.URGENTE)}</Text>
@@ -117,11 +182,7 @@ export const DashboardScreen: React.FC = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.statusCard,
-            { backgroundColor: '#2D1A00', borderColor: '#F97316' },
-            filtroStatus === StatusVegetacao.ATENCAO && styles.statusCardActive,
-          ]}
+          style={[styles.statusCard, { backgroundColor: '#2D1A00', borderColor: '#F97316' }, filtroStatus === StatusVegetacao.ATENCAO && styles.statusCardActive]}
           onPress={() => setFiltroStatus(StatusVegetacao.ATENCAO)}
         >
           <Text style={[styles.statusNumber, { color: '#F97316' }]}>{contarPorStatus(StatusVegetacao.ATENCAO)}</Text>
@@ -129,11 +190,7 @@ export const DashboardScreen: React.FC = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.statusCard,
-            { backgroundColor: '#0D2B12', borderColor: '#4ADE80' },
-            filtroStatus === StatusVegetacao.NORMAL && styles.statusCardActive,
-          ]}
+          style={[styles.statusCard, { backgroundColor: '#0D2B12', borderColor: '#4ADE80' }, filtroStatus === StatusVegetacao.NORMAL && styles.statusCardActive]}
           onPress={() => setFiltroStatus(StatusVegetacao.NORMAL)}
         >
           <Text style={[styles.statusNumber, { color: '#4ADE80' }]}>{contarPorStatus(StatusVegetacao.NORMAL)}</Text>
@@ -141,12 +198,9 @@ export const DashboardScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Botão para limpar filtro */}
+      {/* Botão limpar filtro */}
       {filtroStatus !== 'TODOS' && (
-        <TouchableOpacity
-          style={styles.clearFilterButton}
-          onPress={() => setFiltroStatus('TODOS')}
-        >
+        <TouchableOpacity style={styles.clearFilterButton} onPress={() => setFiltroStatus('TODOS')}>
           <Text style={styles.clearFilterText}>✕ Limpar Filtro</Text>
         </TouchableOpacity>
       )}
@@ -160,12 +214,7 @@ export const DashboardScreen: React.FC = () => {
         )}
         contentContainerStyle={styles.list}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#4ADE80"
-            colors={['#4ADE80']}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4ADE80" colors={['#4ADE80']} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -175,7 +224,7 @@ export const DashboardScreen: React.FC = () => {
         }
       />
 
-      {/* Botão flutuante — Simular Coleta */}
+      {/* Botão flutuante */}
       <TouchableOpacity style={styles.fab} onPress={simularColeta}>
         <Text style={styles.fabText}>🔬 Simular Coleta</Text>
       </TouchableOpacity>
@@ -184,127 +233,55 @@ export const DashboardScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0A0F0A',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#0A0F0A',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#4ADE80',
-    letterSpacing: 0.5,
-  },
+  container: { flex: 1, backgroundColor: '#0A0F0A' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0F0A' },
+  loadingText: { marginTop: 12, fontSize: 16, color: '#4ADE80', letterSpacing: 0.5 },
   header: {
-    backgroundColor: '#0D1F0F',
-    padding: 20,
-    paddingTop: 50,
-    paddingBottom: 28,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A3A1C',
+    backgroundColor: '#0D1F0F', padding: 20, paddingTop: 50, paddingBottom: 28,
+    borderBottomWidth: 1, borderBottomColor: '#1A3A1C',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#4ADE80',
-    marginBottom: 4,
-    letterSpacing: 0.5,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7C6B',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#4ADE80', marginBottom: 4, letterSpacing: 0.5 },
+  subtitle: { fontSize: 14, color: '#6B7C6B', letterSpacing: 1, textTransform: 'uppercase' },
   statusContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    backgroundColor: '#0D130D',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A2A1A',
+    flexDirection: 'row', justifyContent: 'space-around', padding: 16,
+    backgroundColor: '#0D130D', borderBottomWidth: 1, borderBottomColor: '#1A2A1A',
   },
-  statusCard: {
-    flex: 1,
-    marginHorizontal: 5,
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    opacity: 0.85,
-  },
-  statusCardActive: {
-    opacity: 1,
-    borderWidth: 2,
-  },
-  statusNumber: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  statusLabel: {
-    fontSize: 11,
-    color: '#9CA39C',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+  statusCard: { flex: 1, marginHorizontal: 5, padding: 14, borderRadius: 10, alignItems: 'center', borderWidth: 1, opacity: 0.85 },
+  statusCardActive: { opacity: 1, borderWidth: 2 },
+  statusNumber: { fontSize: 30, fontWeight: 'bold', marginBottom: 4 },
+  statusLabel: { fontSize: 11, color: '#9CA39C', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   clearFilterButton: {
-    backgroundColor: '#132B15',
-    borderWidth: 1,
-    borderColor: '#4ADE80',
-    padding: 10,
-    margin: 16,
-    marginBottom: 0,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: '#132B15', borderWidth: 1, borderColor: '#4ADE80',
+    padding: 10, margin: 16, marginBottom: 0, borderRadius: 8, alignItems: 'center',
   },
-  clearFilterText: {
-    color: '#4ADE80',
-    fontSize: 13,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  list: {
-    padding: 16,
-  },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#4A5A4A',
-  },
+  clearFilterText: { color: '#4ADE80', fontSize: 13, fontWeight: 'bold', letterSpacing: 0.5 },
+  list: { padding: 16 },
+  emptyContainer: { padding: 40, alignItems: 'center' },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyText: { fontSize: 16, color: '#4A5A4A' },
   fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#166534',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: '#4ADE80',
-    shadowColor: '#4ADE80',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    position: 'absolute', bottom: 20, right: 20, backgroundColor: '#166534',
+    paddingHorizontal: 24, paddingVertical: 16, borderRadius: 28,
+    borderWidth: 1, borderColor: '#4ADE80', elevation: 8,
   },
-  fabText: {
-    color: '#4ADE80',
-    fontSize: 15,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+  fabText: { color: '#4ADE80', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5 },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center' },
+  modalBox: {
+    backgroundColor: '#0D1F0F', borderWidth: 1, borderColor: '#1A3A1C',
+    borderRadius: 16, padding: 24, width: '85%', maxWidth: 400,
   },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#4ADE80', marginBottom: 12 },
+  modalMessage: { fontSize: 15, color: '#9CA39C', lineHeight: 22, marginBottom: 24 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
+  modalButtonCancel: {
+    paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: '#1A3A1C',
+  },
+  modalButtonCancelText: { color: '#6B7C6B', fontWeight: 'bold' },
+  modalButtonConfirm: {
+    paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8,
+    backgroundColor: '#166534', borderWidth: 1, borderColor: '#4ADE80',
+  },
+  modalButtonConfirmText: { color: '#4ADE80', fontWeight: 'bold' },
 });
