@@ -1,6 +1,6 @@
 # LeafGreen
 
-API REST desenvolvida para monitoramento inteligente de vegetação em rodovias do estado de São Paulo. O sistema coleta dados de sensores distribuídos ao longo das pistas, analisa o crescimento da vegetação e classifica cada área com status de risco, permitindo que equipes de manutenção atuem de forma preventiva e eficiente.
+Interface desenvolvida para monitoramento inteligente de vegetação em rodovias do estado de São Paulo. O sistema coleta dados de sensores distribuídos ao longo das pistas, analisa o crescimento da vegetação e classifica cada área com status de risco, permitindo que equipes de manutenção atuem de forma preventiva e eficiente.
 
 ----
 
