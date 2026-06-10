@@ -1,3 +1,6 @@
+// src/types/medicao.ts
+import { Sensor } from './sensor';   // ← Importação adicionada
+
 export type Medicao = {
   id: number;
   areaId: number;
@@ -13,12 +16,10 @@ export type Medicao = {
   observacoes: string | null;
 };
 
-export type MedicaoInput = {
-  alturaVegetacao: number;
-  densidade: number;
-  temperatura: number;
-  umidade: number;
-  tipoVegetacao?: string;
-  inclinacaoTerreno?: number;
-  observacoes?: string;
+// Tipo genérico para Sprint 2 (caso precise usar)
+export type MedicaoGenerica = {
+  id: number;
+  sensor: Sensor;
+  valor: number;
+  data: Date;
 };
