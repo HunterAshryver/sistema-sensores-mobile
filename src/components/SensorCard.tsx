@@ -10,16 +10,20 @@ type Props = {
 };
 
 export const SensorCard: React.FC<Props> = ({ medicao, onPress }) => {
-  // Usamos alturaVegetacao como valor principal (pode mudar depois)
-  const valorPrincipal = medicao.alturaVegetacao;
-  const status = calcularStatus(valorPrincipal);
+  // Prioriza o status vindo da API; se não vier, calcula localmente
+  const status =
+    medicao.status ??
+    calcularStatus(medicao.alturaVegetacao, medicao.densidade);
+
   const color = getStatusColor(status);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <TouchableOpacity style={[styles.card, { borderLeftColor: color }]} onPress={onPress}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.sensorNome}>Sensor de Vegetação</Text>
+          <Text style={styles.sensorNome}>
+            {medicao.sensorId ?? 'Sensor de Vegetação'}
+          </Text>
           <Text style={styles.sensorTipo}>Área: {medicao.areaCodigo}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: color + '22', borderColor: color }]}>
@@ -28,7 +32,9 @@ export const SensorCard: React.FC<Props> = ({ medicao, onPress }) => {
       </View>
 
       <View style={styles.valorContainer}>
-        <Text style={[styles.valor, { color }]}>{valorPrincipal.toFixed(2)}</Text>
+        <Text style={[styles.valor, { color }]}>
+          {medicao.alturaVegetacao.toFixed(2)}
+        </Text>
         <Text style={styles.unidade}>m</Text>
       </View>
 
@@ -39,13 +45,17 @@ export const SensorCard: React.FC<Props> = ({ medicao, onPress }) => {
 
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>Temperatura:</Text>
-        <Text style={styles.infoValue}>{medicao.temperatura}°C</Text>
+        <Text style={styles.infoValue}>{medicao.temperatura.toFixed(1)}°C</Text>
       </View>
 
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>Umidade:</Text>
-        <Text style={styles.infoValue}>{medicao.umidade}%</Text>
+        <Text style={styles.infoValue}>{medicao.umidade.toFixed(1)}%</Text>
       </View>
+
+      {medicao.observacoes ? (
+        <Text style={styles.observacoes}>{medicao.observacoes}</Text>
+      ) : null}
 
       <Text style={styles.data}>
         {new Date(medicao.dataColeta).toLocaleString('pt-BR')}
@@ -61,7 +71,6 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#4ADE80',
   },
   header: {
     flexDirection: 'row',
@@ -115,6 +124,12 @@ const styles = StyleSheet.create({
     color: '#E2F5E2',
     fontSize: 13,
     fontWeight: '500',
+  },
+  observacoes: {
+    fontSize: 12,
+    color: '#9CA39C',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   data: {
     fontSize: 13,

@@ -1,5 +1,7 @@
 // src/types/medicao.ts
-import { Sensor } from './sensor';   // ← Importação adicionada
+import { Sensor } from './sensor';
+
+export type StatusMedicaoAPI = 'NORMAL' | 'ALERTA' | 'CRITICO';
 
 export type Medicao = {
   id: number;
@@ -14,9 +16,11 @@ export type Medicao = {
   dataColeta: string;
   sensorId: string | null;
   observacoes: string | null;
+  status: StatusMedicaoAPI;
+  statusDescricao: string;
 };
 
-// Tipo genérico para Sprint 2 (caso precise usar)
+// Tipo genérico da Sprint 2 (caso ainda precise)
 export type MedicaoGenerica = {
   id: number;
   sensor: Sensor;

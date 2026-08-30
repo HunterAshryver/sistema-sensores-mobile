@@ -1,4 +1,1 @@
-export type StatusMedicao =
-  | "normal"
-  | "alerta"
-  | "critico";
+export type StatusMedicao = 'NORMAL' | 'ALERTA' | 'CRITICO';

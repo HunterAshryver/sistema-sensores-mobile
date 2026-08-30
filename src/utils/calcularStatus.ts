@@ -1,26 +1,39 @@
 // src/utils/calcularStatus.ts
-export type StatusMedicao = "normal" | "alerta" | "critico";
+export type StatusMedicao = 'NORMAL' | 'ALERTA' | 'CRITICO';
 
-export function calcularStatus(valor: number): StatusMedicao {
-  if (valor > 100) return "critico";
-  if (valor > 80) return "alerta";
-  return "normal";
+/** Fallback caso a API não envie status. Regra alinhada ao backend. */
+export function calcularStatus(altura: number, densidade?: number): StatusMedicao {
+  if (altura > 1.5 || (densidade != null && densidade > 70)) {
+    return 'CRITICO';
+  }
+  if (altura > 1.0 || (densidade != null && densidade > 50)) {
+    return 'ALERTA';
+  }
+  return 'NORMAL';
 }
 
-export function getStatusColor(status: StatusMedicao): string {
-  switch (status) {
-    case "critico": return "#EF4444";
-    case "alerta": return "#F97316";
-    case "normal": return "#4ADE80";
-    default: return "#6B7C6B";
+export function getStatusColor(status: StatusMedicao | string): string {
+  switch (String(status).toUpperCase()) {
+    case 'CRITICO':
+      return '#EF4444';
+    case 'ALERTA':
+      return '#F97316';
+    case 'NORMAL':
+      return '#4ADE80';
+    default:
+      return '#6B7C6B';
   }
 }
 
-export function getStatusLabel(status: StatusMedicao): string {
-  switch (status) {
-    case "critico": return "Crítico";
-    case "alerta": return "Alerta";
-    case "normal": return "Normal";
-    default: return "Desconhecido";
+export function getStatusLabel(status: StatusMedicao | string): string {
+  switch (String(status).toUpperCase()) {
+    case 'CRITICO':
+      return 'Crítico';
+    case 'ALERTA':
+      return 'Alerta';
+    case 'NORMAL':
+      return 'Normal';
+    default:
+      return 'Desconhecido';
   }
 }

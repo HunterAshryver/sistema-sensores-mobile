@@ -1,10 +1,17 @@
+import { Platform } from 'react-native';
 import { AreaMonitoramento } from '../types/areaMonitoramento';
 import { Medicao } from '../types/medicao';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// BASE_URL:
+// - Web / iOS simulador → localhost
+// - Emulador Android   → 10.0.2.2
+// - Celular físico     → troque para o IP da sua máquina (ex: http://192.168.0.10:8080/api)
+const API_BASE_URL =
+  Platform.OS === 'android'
+    ? 'http://10.0.2.2:8080/api'
+    : 'http://localhost:8080/api';
 
 export const api = {
-  // Áreas de Monitoramento
   areas: {
     listarTodas: async (): Promise<AreaMonitoramento[]> => {
       const response = await fetch(`${API_BASE_URL}/areas`);
@@ -25,7 +32,6 @@ export const api = {
     },
   },
 
-  // Medições
   medicoes: {
     listarTodas: async (): Promise<Medicao[]> => {
       const response = await fetch(`${API_BASE_URL}/medicoes`);
